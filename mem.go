@@ -8,6 +8,7 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
+// MemFree prints the free memory in human readable units. Is green as long as there is 1GiB free, shifts red as the free memory approaches zero.
 func MemFree(uc chan<- I3Block) {
 	var o I3Block
 	o.Markup = pango
@@ -32,6 +33,7 @@ func MemFree(uc chan<- I3Block) {
 	}
 }
 
+// SwapUsed shows the swap space in use. Turns red once more than 100 bytes are used.
 func SwapUsed(uc chan<- I3Block) {
 	var o I3Block
 	o.Markup = pango

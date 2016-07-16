@@ -8,6 +8,7 @@ import (
 	"github.com/shirou/gopsutil/load"
 )
 
+// LoadAvg prints the load average for 1, 5 and 15 minutes every second. Color for each load shifts from green to red as it approaches the number of cores on the system.
 func LoadAvg(uc chan<- I3Block) {
 	var o I3Block
 	o.Markup = pango

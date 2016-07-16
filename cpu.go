@@ -7,6 +7,7 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 )
 
+// CPU returns cpu time usage every second for each core. Color shifts from green to red as the usage approaches 100
 func CPU(uc chan<- I3Block) {
 	var o I3Block
 	o.Markup = "pango"

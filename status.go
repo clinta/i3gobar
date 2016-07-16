@@ -12,6 +12,7 @@ const (
 	pango = "pango"
 )
 
+// I3Block represents a block to be printed on the bar. See the i3bar protocol documentation for details on each property
 type I3Block struct {
 	FullText            string `json:"full_text"`
 	ShortText           string `json:"short_text,omitempty"`
@@ -42,6 +43,8 @@ type update struct {
 
 var logger *log.Logger
 
+// Run runs all the specified functions, and prints the output to be consumed by i3bar.
+// It runs each function in a goroutine and updates the bar when any of them return data on the return channel.
 func Run(f []func(chan<- I3Block)) {
 	logger = log.New(os.Stderr, "", 0)
 
@@ -77,13 +80,13 @@ func Run(f []func(chan<- I3Block)) {
 		u := <-uc
 		blocks[u.index] = u.update
 
-		blockJson, err := jsonMarshal(blocks)
+		blockJSON, err := jsonMarshal(blocks)
 		if err != nil {
 			log.Print(err)
 			continue
 		}
 
-		fmt.Print(string(blockJson))
+		fmt.Print(string(blockJSON))
 		fmt.Println(",")
 	}
 }
@@ -98,6 +101,7 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	return b, err
 }
 
+// GetColor returns a color between green and red where 0 = green and 100 = red
 func GetColor(n float64) string {
 	// #00FF00
 	r := int(255 * n)
@@ -106,6 +110,7 @@ func GetColor(n float64) string {
 	return fmt.Sprintf("#%0.2x%0.2x%0.2x", r, g, b)
 }
 
+// ColorString returns a pango formatted string colored between green and red with the provided value
 func ColorString(s string, n float64) string {
 	return fmt.Sprintf("<span foreground=\"%v\">%v</span>", GetColor(n), s)
 }
