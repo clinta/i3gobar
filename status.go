@@ -1,4 +1,4 @@
-package main
+package i3gobar
 
 import (
 	"bytes"
@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 )
 
-type i3Block struct {
+const (
+	pango = "pango"
+)
+
+type I3Block struct {
 	FullText            string `json:"full_text"`
 	ShortText           string `json:"short_text,omitempty"`
 	Color               string `json:"color,omitempty"`
@@ -25,25 +28,39 @@ type i3Block struct {
 	Markup              string `json:"markup,omitempty"`                // set to pango for pango markup
 }
 
-type update struct {
-	index  int
-	update i3Block
+type i3Header struct {
+	Version int `json:"version"`
+	// StopSignal  int  `json:"stop_signal"`
+	// ContSignal  int  `json:"cont_signal"`
+	ClickEvents bool `json:"click_events"`
 }
 
-var l *log.Logger
+type update struct {
+	index  int
+	update I3Block
+}
 
-func printStatus() {
-	l = log.New(os.Stderr, "", 0)
+var logger *log.Logger
 
-	pfuncs := [...]func(chan<- i3Block){
-		cpus,
+func Run(f []func(chan<- I3Block)) {
+	logger = log.New(os.Stderr, "", 0)
+
+	hdr := &i3Header{
+		Version:     1,
+		ClickEvents: false,
 	}
 
+	hdrb, err := json.Marshal(hdr)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(hdrb))
+
 	uc := make(chan update)
-	for i, pfunc := range pfuncs {
-		go func() {
-			bc := make(chan i3Block)
-			go pfunc(bc)
+	for i, p := range f {
+		go func(i int, p func(chan<- I3Block)) {
+			bc := make(chan I3Block)
+			go p(bc)
 			for {
 				b := <-bc
 				uc <- update{
@@ -51,11 +68,11 @@ func printStatus() {
 					update: b,
 				}
 			}
-		}()
+		}(i, p)
 	}
 
 	fmt.Println("[")
-	blocks := make([]i3Block, len(pfuncs))
+	blocks := make([]I3Block, len(f))
 	for {
 		u := <-uc
 		blocks[u.index] = u.update
@@ -71,20 +88,6 @@ func printStatus() {
 	}
 }
 
-func getColor(n interface{}) string {
-	// #00FF00
-	i := 0
-	s := fmt.Sprintf("%.0f", n)
-	if pi, err := strconv.Atoi(s); err == nil {
-		i = pi
-	}
-
-	r := (255 * i) / 100
-	g := (255 * (100 - i)) / 100
-	b := 0
-	return fmt.Sprintf("#%0.2x%0.2x%0.2x", r, g, b)
-}
-
 func jsonMarshal(v interface{}) ([]byte, error) {
 	b, err := json.Marshal(v)
 
@@ -93,4 +96,16 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	b = bytes.Replace(b, []byte("\\u0026"), []byte("&"), -1)
 
 	return b, err
+}
+
+func GetColor(n float64) string {
+	// #00FF00
+	r := int(255 * n)
+	g := int(255 * (1 - n))
+	b := 0
+	return fmt.Sprintf("#%0.2x%0.2x%0.2x", r, g, b)
+}
+
+func ColorString(s string, n float64) string {
+	return fmt.Sprintf("<span foreground=\"%v\">%v</span>", GetColor(n), s)
 }

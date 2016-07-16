@@ -1,4 +1,4 @@
-package main
+package i3gobar
 
 import (
 	"fmt"
@@ -7,20 +7,20 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 )
 
-func cpus(uc chan<- i3Block) {
-	var o i3Block
+func CPU(uc chan<- I3Block) {
+	var o I3Block
 	o.Markup = "pango"
 	for {
 		percs, err := cpu.Percent(0, true)
 		if err != nil {
-			l.Println(err)
+			logger.Println(err)
 			continue
 		}
 
 		o.FullText = "CPU:"
 
 		for _, p := range percs {
-			s := fmt.Sprintf("<span foreground=\"%v\">%3.0f</span>", getColor(p), p)
+			s := fmt.Sprintf("<span foreground=\"%v\">%3.0f</span>", GetColor(p/100), p)
 			//s := fmt.Sprintf("%3.0f", p)
 			o.FullText = fmt.Sprintf("%v%v", o.FullText, s)
 		}
