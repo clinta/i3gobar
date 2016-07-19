@@ -23,10 +23,15 @@ type I3Block struct {
 	Align               string `json:"align,omitempty"` // center, right or left alignment of text in block
 	Name                string `json:"name,omitempty"`  // not used by i3, used for click_events
 	Instance            string `json:"instance,omitempty"`
-	Urgent              bool   `json:"urgent,omitempty"`
-	Separator           bool   `json:"separator,omitempty"`             // separator after the block
+	Urgent              bool   `json:"urgent"`
+	NoSeparator         bool   `json:"-"`                               // Specify as true to omit the spearator after this field
 	SeparatorBlockWidth int    `json:"separator_block_width,omitempty"` // pixels to be left blank after the block
 	Markup              string `json:"markup,omitempty"`                // set to pango for pango markup
+}
+
+type i3Block struct {
+	I3Block
+	Separator bool `json:"separator"` // separator after the block
 }
 
 type i3Header struct {
@@ -38,14 +43,14 @@ type i3Header struct {
 
 type update struct {
 	index  int
-	update I3Block
+	update []I3Block
 }
 
 var logger *log.Logger
 
 // Run runs all the specified functions, and prints the output to be consumed by i3bar.
 // It runs each function in a goroutine and updates the bar when any of them return data on the return channel.
-func Run(f []func(chan<- I3Block)) {
+func Run(f []func(chan<- []I3Block)) {
 	logger = log.New(os.Stderr, "", 0)
 
 	hdr := &i3Header{
@@ -61,8 +66,8 @@ func Run(f []func(chan<- I3Block)) {
 
 	uc := make(chan update)
 	for i, p := range f {
-		go func(i int, p func(chan<- I3Block)) {
-			bc := make(chan I3Block)
+		go func(i int, p func(chan<- []I3Block)) {
+			bc := make(chan []I3Block)
 			go p(bc)
 			for {
 				b := <-bc
@@ -75,12 +80,17 @@ func Run(f []func(chan<- I3Block)) {
 	}
 
 	fmt.Println("[")
-	blocks := make([]I3Block, len(f))
+	blocks := make([][]I3Block, len(f))
 	for {
 		u := <-uc
 		blocks[u.index] = u.update
 
-		blockJSON, err := jsonMarshal(blocks)
+		var eblocks []I3Block
+		for _, b := range blocks {
+			eblocks = append(eblocks, b...)
+		}
+
+		blockJSON, err := marshallI3Block(eblocks)
 		if err != nil {
 			log.Print(err)
 			continue
@@ -89,6 +99,18 @@ func Run(f []func(chan<- I3Block)) {
 		fmt.Print(string(blockJSON))
 		fmt.Println(",")
 	}
+}
+
+func marshallI3Block(bs []I3Block) ([]byte, error) {
+	is := make([]i3Block, len(bs))
+	for i, b := range bs {
+		is[i] = i3Block{
+			I3Block:   b,
+			Separator: !b.NoSeparator,
+		}
+		//is[i].Separator = !is[i].NoSeparator
+	}
+	return jsonMarshal(is)
 }
 
 func jsonMarshal(v interface{}) ([]byte, error) {

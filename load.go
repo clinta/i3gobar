@@ -9,9 +9,11 @@ import (
 )
 
 // LoadAvg prints the load average for 1, 5 and 15 minutes every second. Color for each load shifts from green to red as it approaches the number of cores on the system.
-func LoadAvg(uc chan<- I3Block) {
-	var o I3Block
-	o.Markup = pango
+func LoadAvg(uc chan<- []I3Block) {
+	b := make([]I3Block, 4)
+	b[0].FullText = "Load:"
+	b[0].NoSeparator = true
+	//b[0].SeparatorBlockWidth = 3
 
 	c, err := cpu.Counts(false)
 	if err != nil {
@@ -27,13 +29,18 @@ func LoadAvg(uc chan<- I3Block) {
 			continue
 		}
 
-		l1 := ColorString(fmt.Sprintf("%01.02v", la.Load1), la.Load1/cores)
-		l5 := ColorString(fmt.Sprintf("%01.02v", la.Load5), la.Load5/cores)
-		l15 := ColorString(fmt.Sprintf("%01.02v", la.Load15), la.Load15/cores)
+		b[1].FullText = fmt.Sprintf("%01.02v", la.Load1)
+		b[1].Color = GetColor(la.Load1 / cores)
+		b[1].NoSeparator = true
 
-		o.FullText = fmt.Sprintf("Load: %v %v %v", l1, l5, l15)
+		b[2].FullText = fmt.Sprintf("%01.02v", la.Load5)
+		b[2].Color = GetColor(la.Load5 / cores)
+		b[2].NoSeparator = true
 
-		uc <- o
+		b[3].FullText = fmt.Sprintf("%01.02v", la.Load15)
+		b[3].Color = GetColor(la.Load15 / cores)
+
+		uc <- b
 
 		time.Sleep(1 * time.Second)
 	}

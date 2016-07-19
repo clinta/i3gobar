@@ -1,7 +1,6 @@
 package i3gobar
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -9,9 +8,10 @@ import (
 )
 
 // MemFree prints the free memory in human readable units. Is green as long as there is 1GiB free, shifts red as the free memory approaches zero.
-func MemFree(uc chan<- I3Block) {
-	var o I3Block
-	o.Markup = pango
+func MemFree(uc chan<- []I3Block) {
+	b := make([]I3Block, 2)
+	b[0].FullText = "Free:"
+	b[0].NoSeparator = true
 
 	for {
 		vm, err := mem.VirtualMemory()
@@ -24,19 +24,20 @@ func MemFree(uc chan<- I3Block) {
 		if vm.Available < 1024^3 {
 			memc = float64((1<<24 - vm.Available) / 1 << 24)
 		}
-		memStats := ColorString(humanize.IBytes(vm.Available), memc)
-		o.FullText = fmt.Sprintf("Free: %v", memStats)
+		b[1].Color = GetColor(memc)
+		b[1].FullText = humanize.IBytes(vm.Available)
 
-		uc <- o
+		uc <- b
 
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // SwapUsed shows the swap space in use. Turns red once more than 100 bytes are used.
-func SwapUsed(uc chan<- I3Block) {
-	var o I3Block
-	o.Markup = pango
+func SwapUsed(uc chan<- []I3Block) {
+	b := make([]I3Block, 2)
+	b[0].FullText = "Swap:"
+	b[0].NoSeparator = true
 
 	for {
 		sm, err := mem.SwapMemory()
@@ -44,10 +45,14 @@ func SwapUsed(uc chan<- I3Block) {
 			logger.Println(err)
 			continue
 		}
-		swStats := ColorString(humanize.IBytes(sm.Used), float64(sm.Used))
-		o.FullText = fmt.Sprintf("Swap: %v", swStats)
+		if sm.Used == 0 {
+			b[1].Color = GetColor(0)
+		} else {
+			b[1].Color = GetColor(1)
+		}
+		b[1].FullText = humanize.IBytes(sm.Used)
 
-		uc <- o
+		uc <- b
 
 		time.Sleep(1 * time.Second)
 	}
