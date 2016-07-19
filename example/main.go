@@ -21,7 +21,8 @@ func main() {
 func easyFunction(uc chan<- i3gobar.I3Block) {
 	var o i3gobar.I3Block
 	for {
-		o.FullText = "Super easy!"
+		o.FullText = i3gobar.ColorString("Super easy!", 0)
+		o.Markup = "pango"
 		uc <- o
 		time.Sleep(60 * time.Second)
 	}
