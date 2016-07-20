@@ -45,11 +45,8 @@ func SwapUsed(uc chan<- []I3Block) {
 			logger.Println(err)
 			continue
 		}
-		if sm.Used == 0 {
-			b[1].Color = GetColor(0)
-		} else {
-			b[1].Color = GetColor(1)
-		}
+		swc := float64(sm.Used / (1 << 24))
+		b[1].Color = GetColor(swc)
 		b[1].FullText = humanize.IBytes(sm.Used)
 
 		uc <- b
