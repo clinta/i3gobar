@@ -125,6 +125,9 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 
 // GetColor returns a color between green and red where 0 = green and 100 = red
 func GetColor(n float64) string {
+	if n > 1 {
+		n = 1
+	}
 	// #00FF00
 	r := int(255 * (n * 2))
 	g := 255
