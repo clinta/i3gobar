@@ -16,7 +16,7 @@ func main() {
 		easyFunction,
 	}
 
-	i3gobar.Run(f)
+	i3gobar.Run(f, false, 15)
 }
 
 func easyFunction(uc chan<- []i3gobar.I3Block) {
