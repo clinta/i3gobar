@@ -50,7 +50,7 @@ var logger *log.Logger
 
 // Run runs all the specified functions, and prints the output to be consumed by i3bar.
 // It runs each function in a goroutine and updates the bar when any of them return data on the return channel.
-func Run(f []func(chan<- []I3Block)) {
+func Run(f []func(chan<- []I3Block), noSeparator bool, separatorBlockWidth int) {
 	logger = log.New(os.Stderr, "", 0)
 
 	hdr := &i3Header{
@@ -87,6 +87,10 @@ func Run(f []func(chan<- []I3Block)) {
 
 		var eblocks []I3Block
 		for _, b := range blocks {
+			if len(b) > 0 {
+				b[len(b)-1].NoSeparator = noSeparator
+				b[len(b)-1].SeparatorBlockWidth = separatorBlockWidth
+			}
 			eblocks = append(eblocks, b...)
 		}
 
