@@ -84,7 +84,7 @@ func CPUTemp(uc chan<- []I3Block) {
 	for {
 		temp, _ := strconv.Atoi(readLine("/sys/class/thermal/thermal_zone0/temp"))
 		temp = temp / 1000
-		b[0].FullText = fmt.Sprintf("%v \u2103", temp)
+		b[0].FullText = fmt.Sprintf("%v\u2103", temp)
 		//color range 30 to 65 celcius
 		base := temp - 30
 		if base < 0 {
