@@ -97,13 +97,3 @@ func CPUTemp(uc chan<- []I3Block) {
 		uc <- b
 	}
 }
-
-func readLine(path string) string {
-	inFile, _ := os.Open(path)
-	defer inFile.Close()
-	scanner := bufio.NewScanner(inFile)
-	scanner.Split(bufio.ScanLines)
-
-	scanner.Scan()
-	return scanner.Text()
-}
