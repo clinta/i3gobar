@@ -1,9 +1,7 @@
 package i3gobar
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 

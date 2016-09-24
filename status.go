@@ -1,6 +1,7 @@
 package i3gobar
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
