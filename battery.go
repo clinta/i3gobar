@@ -8,7 +8,12 @@ import (
 )
 
 func Batt(uc chan<- []I3Block) {
-	b := make([]I3Block, 2)
+	batteries, err := battery.GetAll()
+	if err != nil {
+		fmt.Println("Could not get battery info!")
+		return
+	}
+	b := make([]I3Block, len(batteries)+1)
 	b[0].FullText = "Bat:"
 	b[0].NoSeparator = true
 	b[0].SeparatorBlockWidth = 3
