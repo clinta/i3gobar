@@ -1,6 +1,7 @@
 package i3gobar
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -152,4 +153,14 @@ func GetColor(n float64) string {
 // ColorString returns a pango formatted string colored between green and red with the provided value
 func ColorString(s string, n float64) string {
 	return fmt.Sprintf("<span foreground=\"%v\">%v</span>", GetColor(n), s)
+}
+
+func readLine(path string) string {
+	inFile, _ := os.Open(path)
+	defer inFile.Close()
+	scanner := bufio.NewScanner(inFile)
+	scanner.Split(bufio.ScanLines)
+
+	scanner.Scan()
+	return scanner.Text()
 }

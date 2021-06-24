@@ -2,6 +2,7 @@ package i3gobar
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
@@ -75,5 +76,22 @@ func CPUGraph(uc chan<- []I3Block) {
 		uc <- b
 
 		time.Sleep(1 * time.Second)
+	}
+}
+
+func CPUTemp(uc chan<- []I3Block) {
+	b := make([]I3Block, 1)
+	for {
+		temp, _ := strconv.Atoi(readLine("/sys/class/thermal/thermal_zone0/temp"))
+		temp = temp / 1000
+		b[0].FullText = fmt.Sprintf("%v\u2103", temp)
+		//color range 30 to 65 celcius
+		base := temp - 30
+		if base < 0 {
+			base = 0
+		}
+		b[0].Color = GetColor(float64(base) / 35)
+		time.Sleep(1 * time.Second)
+		uc <- b
 	}
 }
